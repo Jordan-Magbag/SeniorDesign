@@ -8,7 +8,7 @@ PumpPressureConstant = 3.275E-5; % Calculated from previous work in Simulink
 % Load the Simulink model
 load_system('BasicPumpPlant.slx');
 
-if ~isfile("pump_constants_Attempt2.mat")
+if ~isfile("pump_constants.mat")
 
     % Desired range of target pressures and target flows
     input_speed_current = 10:500:6000; % psi (example: 10 to 400 psi, in steps of 10)
@@ -73,29 +73,38 @@ poly_coeff = polyfit(flow_results, pressure_drop, 2); % Quadratic polynomial fit
 Pressure_coeff = poly_coeff(3) ./ (speed_results.^2); % Use 
 
 % Calculate the PumpACdConstant
-% PumpACdConstant = 1 / sqrt(poly_coeff(1));
+%  PumpACdConstant = 1 / sqrt(poly_coeff(2));
 PumpACdConstant = 1 ./ sqrt(Pressure_coeff);
 display(PumpACdConstant);
 
 % Use Peterman equation to solve for Impeller Drag Algebraicly
 
 % Create target pressure and target flow matrices
-% [TargetPressureMesh, TargetFlowMesh] = meshgrid(target_pressure_range, target_flow_range);
+[InputSpeedMesh, InputDSOAMesh] = meshgrid(input_speed_current, input_DSOutletArea);
 % 
 % % Reshape the matrices to create lists for plotting
-% TargetPressureVec = reshape(TargetPressureMesh, [], 1);
-% TargetFlowVec = reshape(TargetFlowMesh, [], 1);
+InputSpeedVec = reshape(InputSpeedMesh, [], 1);
+InputDSOAVec = reshape(InputDSOAMesh, [], 1);
 PressureResultsVec = reshape(pressure_results', [], 1);
 FlowResultsVec = reshape(flow_results', [], 1);
 
 % Create a 3D scatter plot
-% figure
-% scatter3(TargetPressureVec, TargetFlowVec, PressureResultsVec, 'filled')
-% xlabel('Target Pressure (psi)')
-% ylabel('Target Flow (gpm)')
-% zlabel('Pressure Results (psi)')
-% title('3D Scatter Plot of Pressure Results')
-% grid on
+figure
+scatter3(InputSpeedVec, InputDSOAVec, PressureResultsVec, 'filled')
+xlabel('Input Speed')
+ylabel('Input DSOA')
+zlabel('Pressure Results (psi)')
+title('3D Scatter Plot of Pressure Results')
+grid on
+
+% Create a 3D scatter plot
+figure
+scatter3(InputSpeedVec, InputDSOAVec, FlowResultsVec, 'filled')
+xlabel('Input Speed')
+ylabel('Input DSOA')
+zlabel('Flow Results')
+title('3D Scatter Plot of Pressure Results')
+grid on
 
 figure
 scatter(FlowResultsVec, PressureResultsVec, 'filled')
@@ -105,4 +114,4 @@ title('2D Scatter Plot of Pump Curve')
 grid on
 
 % Save the results and constants to a .mat file
-save('pump_constants.mat', 'speed_results', 'pressure_results', 'flow_results', 'target_pressure_range', 'target_flow_range', 'dead_head_pressure', 'PumpACdConstant');
+save('pump_constants.mat', 'speed_results', 'pressure_results', 'flow_results', 'input_speed_current', 'input_DSOutletArea', 'dead_head_pressure', 'PumpACdConstant');
